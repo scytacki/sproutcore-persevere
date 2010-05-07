@@ -19,5 +19,5 @@ module("Persevere.SchemaLessDataSource", {
 // This is a pending test it should fail
 test("Verify find() loads data from store", function() {
   var sk=store.find(Sample.File, "1");
-  equals(sk.get('name'), 'First record name', 'returns record should have name from fixture');
+  equals(sk.get('name'), 'First record name', 'returns record should have name from hash');
 });

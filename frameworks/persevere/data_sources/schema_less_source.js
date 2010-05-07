@@ -22,7 +22,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
     // TODO: Add handlers to fetch data for specific queries.  
     // call store.dataSourceDidFetchQuery(query) when done.
 
-    return NO ; // return YES if you handled the query
+    return YES ; // return YES if you handled the query
   },
 
   // ..........................................................
@@ -30,11 +30,17 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
   // 
   
   retrieveRecord: function(store, storeKey) {
+    var recordType = SC.Store.recordTypeFor(storeKey),
+        id         = store.idFor(storeKey),
+        hash       = {name: "First record name"};
+
+ 
+    store.dataSourceDidComplete(storeKey, hash, id);
     
     // TODO: Add handlers to retrieve an individual record's contents
     // call store.dataSourceDidComplete(storeKey) when done.
     
-    return NO ; // return YES if you handled the storeKey
+    return YES ; // return YES if you handled the storeKey
   },
   
   createRecord: function(store, storeKey) {

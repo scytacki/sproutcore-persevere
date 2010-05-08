@@ -21,8 +21,12 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 
     // TODO: Add handlers to fetch data for specific queries.  
     // call store.dataSourceDidFetchQuery(query) when done.
-
-    return YES ; // return YES if you handled the query
+	if (query === Sample.FILES_QUERY) {
+		store.loadRecords(Sample.File, [{guid: '1', name: "record 1"}, {guid: '2', name: "record 2"}]);
+		store.dataSourceDidFetchQuery(query);
+		return YES;
+	}
+    return NO ; // return YES if you handled the query
   },
 
   // ..........................................................

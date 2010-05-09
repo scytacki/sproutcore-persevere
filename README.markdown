@@ -5,5 +5,8 @@ sproutcore-persevere/frameworks/persevere to get to the actual framework.
 
 You can run the tests by:
 
-1. run "sc-server" in the root of the project.
-2. open a browser to http://localhost:4020/persevere/en/current/tests.html
+1. in one terminal cd to the testserver directory and run "persvr --base-uri /testserver"
+2. in another terminal run "sc-server" in the root of the project.
+3. open a browser to http://localhost:4020/persevere/en/current/tests.html
+
+NOTE: You'll need to install persevere to run the command above.

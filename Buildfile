@@ -5,3 +5,5 @@
 
 # Add initial buildfile information here
 config :all, :required => :sproutcore
+
+proxy '/testserver', :to => 'localhost:8080'

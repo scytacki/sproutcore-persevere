@@ -1,6 +1,6 @@
-The goal is to to be a sproutcore framework that makes it really easy to use persevere with SproutCore.
+The goal is to be a sproutcore framework that makes it really easy to use persevere with SproutCore.
 
-If I can find a good example I'd like to remove all the directly hierarchy so you don't have to go into
+If I can find a good example I'd like to remove all the directory hierarchy so you don't have to go into
 sproutcore-persevere/frameworks/persevere to get to the actual framework.
 
 You can run the tests by:

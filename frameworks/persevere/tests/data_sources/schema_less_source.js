@@ -18,13 +18,20 @@ module("Persevere.SchemaLessDataSource", {
 	}
 });
 
+// Following the order of the sproutcore todo's tutorial
+// we verify the fetch method first
+test("Verify find() correctly loads fixed data", function() {
+  ServerTest.createTestObjectClass();
+  ServerTest.createTestObjects( [{name: "TestObject1"}, {name: "TestObject2"}]);
+
+  var files = store.find(Sample.FILES_QUERY);
+  equals(files.get('length'), 2, 'returns 2 records');
+  ServerTest.deleteTestObjectClass();
+});
+
 test("Verify find() loads data from store", function() {
   var sk=store.find(Sample.File, "1");
   equals(sk.get('name'), 'First record name', 'returns record should have name from hash');
 });
 
-test("Verify find() correctly loads fixed data", function() {
-  var files = store.find(Sample.FILES_QUERY);
-  equals(files.get('length'), 2, 'returns 2 records');
-});
 

@@ -28,6 +28,17 @@ module("Persevere.ServerTests", {
 				.header('Accept', 'application/json')
 				.send();
 		};		
+
+		// Helper method to create test object(s)
+		// data can be a hash or an array of hashes
+		// this uses Persevere's multiple post approach to make it easier to setup fixture data
+	    // if data is an array the response contains a null Location header
+	    // and the body contains an array with the objects with their id's set
+		ServerTest.createTestObjects = function (data) {
+			var response = postUrl('/testserver/TestObject/', data);
+			equals(response.status, 201, 'TestObject created');
+			return response;
+		};
 	},
 	
 	teardown: function() {
@@ -65,10 +76,30 @@ test("Verify we can create and delete a TestObject Class", function() {
     // DELETE http://localhost:8080/testserver/Class/TestObject
 	response = ServerTest.deleteTestObjectClass();
 			
-	// currently the webbrick doesn't handle the return value of the delete correctly
-	equals(response.status, 500, 'deleting TestObject response is ok, the proxying code doesn\'t handle this correctly');
+	// currently the webbrick and thin don't handle the response of the delete correctly
+	// our guess is that the response has an empty body which appears to not be handled
+	// by both the webbrick and thin proxies
+	// after this error webrick returns a 500 and thin returns a 404
+	ok(response.status === 500 || response.status === 404,
+		'deleting TestObject response is ok, the proxying code doesn\'t handle this correctly: ' + response.status);
 	
 	response = getUrl('/testserver/Class/TestObject');
     equals(response.status, 404, "TestObject Class doesn't exist again, status");
 	
+});
+
+test("Verify we can create a few objects in our test class", function (){
+	ServerTest.createTestObjectClass();
+
+    ServerTest.createTestObjects( [{name: "TestObject1"}, {name: "TestObject2"}]);
+
+	var response, result;
+    response = getUrl('/testserver/TestObject/');
+    result = response.get('body');
+    equals(result.length, 2, 'Result length is correct');
+    equals(result[0].name, 'TestObject1', 'First result name is correct');
+    equals(result[1].name, 'TestObject2', 'Second result name is correct');
+
+	ServerTest.deleteTestObjectClass();
+
 });

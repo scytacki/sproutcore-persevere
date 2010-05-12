@@ -6,9 +6,11 @@ module("Persevere.SchemaLessDataSource", {
 
 	    var Sample = (window.Sample= SC.Object.create());
 	    Sample.File = SC.Record.extend({ test:'hello'});
-
 	    Sample.FILES_QUERY = SC.Query.local(Sample.File, {});
 	
+	    Sample.Directory = SC.Record.extend({});
+	    Sample.DIRS_QUERY = SC.Query.local(Sample.Directory, {});
+
 	    datasource = Persevere.SchemaLessSource.create();
   	    store = SC.Store.create().from(datasource);	
 	},
@@ -22,7 +24,10 @@ module("Persevere.SchemaLessDataSource", {
 // we verify the fetch method first
 test("Verify find() correctly loads fixed data", function() {
   ServerTest.createTestObjectClass();
-  ServerTest.createTestObjects( [{name: "TestObject1"}, {name: "TestObject2"}]);
+  ServerTest.createTestObjects( [
+	{sc_type: 'Sample.File', name: "TestObject1"},
+	{sc_type: 'Sample.File', name: "TestObject2"},
+	{sc_type: 'Sample.Directory', name: "TestObject3"}]);
 
   var files = store.find(Sample.FILES_QUERY);
   equals(files.get('length'), 2, 'returns 2 records');

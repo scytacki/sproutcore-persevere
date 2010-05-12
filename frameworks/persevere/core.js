@@ -19,3 +19,6 @@ Persevere = SC.Object.create(
   // TODO: Add global constants or singleton objects needed by your app here.
 
 }) ;
+
+// Set the default id of the records to reduce the translation between persevere and sproutcore
+SC.Record.prototype.set('primaryKey', 'id');

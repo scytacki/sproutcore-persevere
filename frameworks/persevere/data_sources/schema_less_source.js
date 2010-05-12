@@ -22,7 +22,17 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
     // TODO: Add handlers to fetch data for specific queries.  
     // call store.dataSourceDidFetchQuery(query) when done.
 	if (query === Sample.FILES_QUERY) {
-		store.loadRecords(Sample.File, [{guid: '1', name: "record 1"}, {guid: '2', name: "record 2"}]);
+		// this is uses a class only available in debug mode so it ought to fail
+		// it also currently runs synchronized
+		var response = ServerTest.getUrl('/testserver/TestObject/[?sc_type="Sample.File"]');
+	    var result = response.get('body');
+
+		// this is invalid because the result is an array with id keys instead of the
+		// default guid key
+		// it is inefficient if the has needs to be modified on each request so
+		// it would be better if the source could specify the id key
+		// however I believe that is part of the record
+		store.loadRecords(Sample.File, result);
 		store.dataSourceDidFetchQuery(query);
 		return YES;
 	}

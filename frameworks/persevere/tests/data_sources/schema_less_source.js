@@ -4,34 +4,38 @@ module("Persevere.SchemaLessDataSource", {
 	setup: function() {
 		SC.RunLoop.begin();
 
-	    var Sample = (window.Sample= SC.Object.create());
-	    Sample.File = SC.Record.extend({ test:'hello'});
-	    Sample.FILES_QUERY = SC.Query.local(Sample.File, {});
-	
-	    Sample.Directory = SC.Record.extend({});
+	    Sample.FILES_QUERY = SC.Query.local(Sample.File, {});	
 	    Sample.DIRS_QUERY = SC.Query.local(Sample.Directory, {});
 
 	    datasource = Persevere.SchemaLessSource.create();
   	    store = SC.Store.create().from(datasource);	
+
+	    ServerTest.createTestObjectClass();
+	    ServerTest.createTestObjects( [
+		{sc_type: 'Sample.File', name: "TestObject1"},
+		{sc_type: 'Sample.File', name: "TestObject2"},
+		{sc_type: 'Sample.Directory', name: "TestObject3"},
+		{sc_type: 'Sample.Directory', name: "TestObject4"},
+		{sc_type: 'Sample.Directory', name: "TestObject5"}]);
+
 	},
 	
 	teardown: function() {
+	    ServerTest.deleteTestObjectClass();
 		SC.RunLoop.end();
 	}
 });
 
 // Following the order of the sproutcore todo's tutorial
 // we verify the fetch method first
-test("Verify find() correctly loads fixed data", function() {
-  ServerTest.createTestObjectClass();
-  ServerTest.createTestObjects( [
-	{sc_type: 'Sample.File', name: "TestObject1"},
-	{sc_type: 'Sample.File', name: "TestObject2"},
-	{sc_type: 'Sample.Directory', name: "TestObject3"}]);
-
+test("Verify find() correctly loads File fixture data", function() {
   var files = store.find(Sample.FILES_QUERY);
   equals(files.get('length'), 2, 'returns 2 records');
-  ServerTest.deleteTestObjectClass();
+});
+
+test("Verify find() correctly loads Directory fixture data", function() {
+  var dirs = store.find(Sample.DIRS_QUERY);
+  equals(dirs.get('length'), 3, 'returns 3 records');
 });
 
 test("Verify find() loads data from store", function() {

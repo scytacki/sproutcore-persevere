@@ -19,24 +19,32 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 
   fetch: function(store, query) {
 
-    // TODO: Add handlers to fetch data for specific queries.  
-    // call store.dataSourceDidFetchQuery(query) when done.
-	if (query === Sample.FILES_QUERY) {
-		// this is uses a class only available in debug mode so it ought to fail
-		// it also currently runs synchronized
-		var response = ServerTest.getUrl('/testserver/TestObject/[?sc_type="Sample.File"]');
-	    var result = response.get('body');
+    // Get the record type
+    var recordType = query.get('recordType');
 
-		// this is invalid because the result is an array with id keys instead of the
-		// default guid key
-		// it is inefficient if the has needs to be modified on each request so
-		// it would be better if the source could specify the id key
-		// however I believe that is part of the record
-		store.loadRecords(Sample.File, result);
-		store.dataSourceDidFetchQuery(query);
-		return YES;
-	}
-    return NO ; // return YES if you handled the query
+	// This check was taken from CoreTasks.RemoteDataSource in the Tasks application
+    if (!recordType || !SC.typeOf(recordType) === SC.T_FUNCTION || !recordType.toString) {
+      throw 'Error retrieving records: Invalid record type.';
+    }
+
+	// convert the record type to a string
+	var recordTypeStr = SC._object_className(recordType);
+
+	// FIXME this needs to check the query 
+
+	// this is uses a class only available in debug mode so it ought to fail
+	// it also currently runs synchronized
+	var response = ServerTest.getUrl('/testserver/TestObject/[?sc_type="' + recordTypeStr + '"]');
+    var result = response.get('body');
+
+	// this is invalid because the result is an array with id keys instead of the
+	// default guid key
+	// it is inefficient if the has needs to be modified on each request so
+	// it would be better if the source could specify the id key
+	// however I believe that is part of the record
+	store.loadRecords(recordType, result);
+	store.dataSourceDidFetchQuery(query);
+	return YES;
   },
 
   // ..........................................................

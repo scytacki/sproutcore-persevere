@@ -35,3 +35,9 @@ ServerTest = SC.Object.create({
 	}
 });
 
+// Create example data model classes
+Sample = SC.Object.create();
+Sample.File = SC.Record.extend({ test:'hello'});
+Sample.Directory = SC.Record.extend({test2: 'hello'});
+
+

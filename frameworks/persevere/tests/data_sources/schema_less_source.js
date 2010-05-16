@@ -7,11 +7,11 @@ module("Persevere.SchemaLessDataSource", {
 	    Sample.FILES_QUERY = SC.Query.local(Sample.File, {});	
 	    Sample.DIRS_QUERY = SC.Query.local(Sample.Directory, {});
 
-	    datasource = Persevere.SchemaLessSource.create();
-  	    store = SC.Store.create().from(datasource);	
+	    var ds = Persevere.SchemaLessSource.create();
+        store = SC.Store.create().from(ds);
 
-	    ServerTest.createTestObjectClass();
-	    ServerTest.createTestObjects( [
+	    ServerTest.createTestObjectClass(ds);
+	    ServerTest.createTestObjects(ds, [
 		{sc_type: 'Sample.File', name: "TestObject1"},
 		{sc_type: 'Sample.File', name: "TestObject2"},
 		{sc_type: 'Sample.Directory', name: "TestObject3"},
@@ -21,7 +21,7 @@ module("Persevere.SchemaLessDataSource", {
 	},
 	
 	teardown: function() {
-	    ServerTest.deleteTestObjectClass();
+	    ServerTest.deleteTestObjectClass(ds);
 		SC.RunLoop.end();
 	}
 });

@@ -13,6 +13,23 @@
 Persevere.SchemaLessSource = SC.DataSource.extend(
 /** @scope Persevere.SchemaLessSource.prototype */ {
 
+  basePath: "/testserver",
+
+  _get: function(klass, query) {
+	    if(!query) var query = '';
+
+		return SC.Request.getUrl(this.basePath + "/" + klass + "/" + query).set('isAsynchronous', NO).json()
+		    .header('Accept', 'application/json')
+			.send();
+  },
+
+  _post: function(klass, data) {
+		return SC.Request.postUrl(this.basePath + "/" + klass + "/").json()
+			.set('isAsynchronous', NO)
+			.header('Accept', 'application/json')
+			.send(data);
+  },
+
   // ..........................................................
   // QUERY SUPPORT
   // 
@@ -32,9 +49,8 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 
 	// FIXME this needs to check the query 
 
-	// this is uses a class only available in debug mode so it ought to fail
-	// it also currently runs synchronized
-	var response = ServerTest.getUrl('/testserver/TestObject/[?sc_type="' + recordTypeStr + '"]');
+	// FIXME this runs synchronized which makes testing easier but not good for production
+	var response = this._get('TestObject', '[?sc_type="' + recordTypeStr + '"]');
     var result = response.get('body');
 
 	// this is invalid because the result is an array with id keys instead of the

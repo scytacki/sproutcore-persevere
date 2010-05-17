@@ -53,11 +53,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 	var response = this._get('TestObject', '[?sc_type="' + recordTypeStr + '"]');
     var result = response.get('body');
 
-	// this is invalid because the result is an array with id keys instead of the
-	// default guid key
-	// it is inefficient if the has needs to be modified on each request so
-	// it would be better if the source could specify the id key
-	// however I believe that is part of the record
+	// This counts on the records primaryKey property set to 'id' instead of the default 'guid'
 	store.loadRecords(recordType, result);
 	store.dataSourceDidFetchQuery(query);
 	return YES;

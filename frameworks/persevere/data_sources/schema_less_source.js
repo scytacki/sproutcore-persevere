@@ -47,7 +47,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 	// convert the record type to a string
 	var recordTypeStr = SC._object_className(recordType);
 
-	// FIXME this needs to check the query 
+	// FIXME this needs to check the query
 
 	// FIXME this runs synchronized which makes testing easier but not good for production
 	var response = this._get('TestObject', '[?sc_type="' + recordTypeStr + '"]');
@@ -68,19 +68,28 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
         id         = store.idFor(storeKey),
         hash       = {name: "First record name"};
 
+	// convert the record type to a string
+	var recordTypeStr = SC._object_className(recordType);
+
+	// FIXME this needs to check the query
+
+	// FIXME this runs synchronized which makes testing easier but not good for production
+	var response = this._get('TestObject', id);
+	var result = response.get('body');
  
-    store.dataSourceDidComplete(storeKey, hash, id);
-    
-    // TODO: Add handlers to retrieve an individual record's contents
-    // call store.dataSourceDidComplete(storeKey) when done.
-    
+    store.dataSourceDidComplete(storeKey, result, id);
+
     return YES ; // return YES if you handled the storeKey
   },
   
   createRecord: function(store, storeKey) {
-    
-    // TODO: Add handlers to submit new records to the data source.
-    // call store.dataSourceDidComplete(storeKey) when done.
+    var recordType = SC.Store.recordTypeFor(storeKey);
+
+	// convert the record type to a string
+	var recordTypeStr = SC._object_className(recordType);
+	var hash = store.readDataHash(storeKey);
+
+    // send the post with the hash
     
     return NO ; // return YES if you handled the storeKey
   },

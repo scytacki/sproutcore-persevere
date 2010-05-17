@@ -1,4 +1,4 @@
-var store, datasource;
+var store, ds;
 
 module("Persevere.SchemaLessDataSource", {
 	setup: function() {
@@ -7,7 +7,7 @@ module("Persevere.SchemaLessDataSource", {
 	    Sample.FILES_QUERY = SC.Query.local(Sample.File, {});	
 	    Sample.DIRS_QUERY = SC.Query.local(Sample.Directory, {});
 
-	    var ds = Persevere.SchemaLessSource.create();
+	    ds = Persevere.SchemaLessSource.create();
         store = SC.Store.create().from(ds);
 
 	    ServerTest.createTestObjectClass(ds);
@@ -38,9 +38,19 @@ test("Verify find() correctly loads Directory fixture data", function() {
   equals(dirs.get('length'), 3, 'returns 3 records');
 });
 
-test("Verify find() loads data from store", function() {
-  var sk=store.find(Sample.File, "1");
-  equals(sk.get('name'), 'First record name', 'returns record should have name from hash');
+test("Verify find() can get objects by type and id", function() {
+  var sf=store.find(Sample.File, "1");
+  equals(sf.get('name'), 'TestObject1', 'returned record has correct name');
+
+  var sd = store.find(Sample.Directory, "3");
+  equals(sd.get('name'), 'TestObject3', 'returned record has have correct name');
 });
 
+test("Verify create", function() {
+  var sf = store.createRecord(Sample.File, {});
+  var sf1 = store.find(Sample.File, sf.get('id'));
 
+  // This probably isn't the best test, to be sure it should look directly
+  // at the server
+  equals(sf1, sf, 'created record equals found record');
+});

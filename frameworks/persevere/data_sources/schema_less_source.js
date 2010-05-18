@@ -89,8 +89,20 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 	var recordTypeStr = SC._object_className(recordType);
 	var hash = store.readDataHash(storeKey);
 
+    // add the type to the has
+    hash.sc_type = recordTypeStr;
+
     // send the post with the hash
-    
+    var response = this._post('TestObject', hash);
+    console.log("Post complete: " + response);
+
+    if (SC.ok(response)) {
+	  	var url = response.header('Location');
+	    console.log("Location after createRecord: " + url);
+		store.dataSourceDidComplete(storeKey, null, url); // update id
+		return YES;
+	}
+
     return NO ; // return YES if you handled the storeKey
   },
   

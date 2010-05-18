@@ -8,7 +8,10 @@ module("Persevere.SchemaLessDataSource", {
 	    Sample.DIRS_QUERY = SC.Query.local(Sample.Directory, {});
 
 	    ds = Persevere.SchemaLessSource.create();
-        store = SC.Store.create().from(ds);
+        store = SC.Store.create({
+	        // turn this on so we don't have commit them manually
+			commitRecordsAutomatically: YES
+  		}).from(ds);
 
 	    ServerTest.createTestObjectClass(ds);
 	    ServerTest.createTestObjects(ds, [
@@ -47,7 +50,16 @@ test("Verify find() can get objects by type and id", function() {
 });
 
 test("Verify create", function() {
-  var sf = store.createRecord(Sample.File, {});
+  var sf = store.createRecord(Sample.File, {name: 'CreatedObject1'});
+
+  // need to end the run loop inorder for the auto commit to fire
+  // alternatively we could call store.commitRecords directly
+  SC.RunLoop.end();
+
+
+  SC.RunLoop.begin();
+  console.log("new id: " + sf.get('id'));
+  console.log("new obj name: " + sf.get('name'));
   var sf1 = store.find(Sample.File, sf.get('id'));
 
   // This probably isn't the best test, to be sure it should look directly

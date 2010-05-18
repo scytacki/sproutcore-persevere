@@ -11,7 +11,7 @@ module("Persevere.SchemaLessDataSource", {
         store = SC.Store.create({
 	        // turn this on so we don't have commit them manually
 			commitRecordsAutomatically: YES
-  		}).from(ds);
+		}).from(ds);
 
 	    ServerTest.createTestObjectClass(ds);
 	    ServerTest.createTestObjects(ds, [
@@ -56,6 +56,9 @@ test("Verify create", function() {
   // alternatively we could call store.commitRecords directly
   SC.RunLoop.end();
 
+  // We should add code here to verify that the createRecord was called on the
+  // source
+  // or we should query persevere directly to see if it was created
 
   SC.RunLoop.begin();
   console.log("new id: " + sf.get('id'));
@@ -65,4 +68,21 @@ test("Verify create", function() {
   // This probably isn't the best test, to be sure it should look directly
   // at the server
   equals(sf1, sf, 'created record equals found record');
+});
+
+test("Verify update", function() {
+  var sf=store.find(Sample.File, "1");
+  sf.set('name', 'UpdatedTestObject1');
+
+  // need to end the run loop inorder for the auto commit to fire
+  // alternatively we could call store.commitRecords directly
+  SC.RunLoop.end();
+
+  SC.RunLoop.begin();
+  var sf1 = store.find(Sample.File, sf.get('id'));
+
+  // This probably isn't the best test, to be sure it should look directly
+  // at the server
+  equals(sf1.get('name'), 'UpdatedTestObject1', 'updated record has correct name');
+
 });

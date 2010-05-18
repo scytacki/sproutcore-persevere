@@ -30,6 +30,14 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 			.send(data);
   },
 
+
+  _put: function(klass, id, data) {
+	return SC.Request.putUrl(this.basePath + "/" + klass + "/" + id).json()
+	      .set('isAsynchronous', NO)
+		  .header('Accept', 'application/json')
+	      .send(data);
+  },
+
   // ..........................................................
   // QUERY SUPPORT
   // 
@@ -89,7 +97,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 	var recordTypeStr = SC._object_className(recordType);
 	var hash = store.readDataHash(storeKey);
 
-    // add the type to the has
+    // add the type to the hash
     hash.sc_type = recordTypeStr;
 
     // send the post with the hash
@@ -97,7 +105,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
     console.log("Post complete: " + response);
 
     if (SC.ok(response)) {
-	  	var url = response.header('Location');
+		var url = response.header('Location');
 	    console.log("Location after createRecord: " + url);
 		store.dataSourceDidComplete(storeKey, null, url); // update id
 		return YES;
@@ -107,11 +115,20 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
   },
   
   updateRecord: function(store, storeKey) {
-    
-    // TODO: Add handlers to submit modified record to the data source
-    // call store.dataSourceDidComplete(storeKey) when done.
+	var hash = store.readDataHash(storeKey);
+	var response = this._put('TestObject', store.idFor(storeKey), hash);
 
-    return NO ; // return YES if you handled the storeKey
+    console.log('update record did a put');
+
+	if (SC.ok(response)) {
+	  var data = response.get('body');
+      store.dataSourceDidComplete(storeKey, data);
+      return YES;
+    }
+
+    // if we are asynchronous then this should be called in the call back when it fails
+    // store.dataSourceDidError(storeKey);
+	return NO;
   },
   
   destroyRecord: function(store, storeKey) {

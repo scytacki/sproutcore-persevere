@@ -13,8 +13,8 @@ module("Persevere.SchemaLessDataSource", {
 			commitRecordsAutomatically: YES
 		}).from(ds);
 
-	    ServerTest.createTestObjectClass(ds);
-	    ServerTest.createTestObjects(ds, [
+	    ServerTest.createTestObjectClass();
+	    ServerTest.createTestObjects([
 		{sc_type: 'Sample.File', name: "TestObject1"},
 		{sc_type: 'Sample.File', name: "TestObject2"},
 		{sc_type: 'Sample.Directory', name: "TestObject3"},
@@ -24,7 +24,7 @@ module("Persevere.SchemaLessDataSource", {
 	},
 	
 	teardown: function() {
-	    ServerTest.deleteTestObjectClass(ds);
+	    ServerTest.deleteTestObjectClass();
 		SC.RunLoop.end();
 	}
 });

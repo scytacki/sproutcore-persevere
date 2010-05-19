@@ -1,3 +1,5 @@
+require('data_sources/persevere_server');
+
 // ==========================================================================
 // Project:   Persevere.SchemaLessSource
 // Copyright: ©2010 My Company, Inc.
@@ -10,40 +12,8 @@
 
   @extends SC.DataSource
 */
-Persevere.SchemaLessSource = SC.DataSource.extend(
+Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 /** @scope Persevere.SchemaLessSource.prototype */ {
-
-  basePath: "/testserver",
-
-  _get: function(klass, query) {
-	    if(!query) var query = '';
-
-		return SC.Request.getUrl(this.basePath + "/" + klass + "/" + query).set('isAsynchronous', NO).json()
-		    .header('Accept', 'application/json')
-			.send();
-  },
-
-  _post: function(klass, data) {
-		return SC.Request.postUrl(this.basePath + "/" + klass + "/").json()
-			.set('isAsynchronous', NO)
-			.header('Accept', 'application/json')
-			.send(data);
-  },
-
-
-  _put: function(klass, id, data) {
-	return SC.Request.putUrl(this.basePath + "/" + klass + "/" + id).json()
-	      .set('isAsynchronous', NO)
-		  .header('Accept', 'application/json')
-	      .send(data);
-  },
-
-  _delete: function(klass, id) {
-	return SC.Request.deleteUrl(this.basePath + "/" + klass + "/" + id).json()
-		.set('isAsynchronous', NO)
-		.header('Accept', 'application/json')
-		.send();
-  },
 
   // ..........................................................
   // QUERY SUPPORT

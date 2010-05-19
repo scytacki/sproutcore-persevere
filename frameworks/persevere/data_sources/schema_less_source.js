@@ -111,7 +111,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   destroyRecord: function(store, storeKey) {
 	var response = this._delete('TestObject', store.idFor(storeKey));
 
-	console.log('destoryRecord sent delete');
+	console.log('destoryRecord sent delete response.status: ' + response.status);
 
     if(this._deleteResponseOk(response)){
       store.dataSourceDidDestroy(storeKey);
@@ -120,12 +120,5 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 
     return NO ; // return YES if you handled the storeKey
   },
-
-  _deleteResponseOk: function(response) {
-	// the sproutcore gem proxying code doesn\'t handle delete correctly
-	// if this is used with sproutcore master this function can probably
-	// be a simple SC.ok(response);
-	return response.status === 500 || response.status === 404;
-  }
 
 }) ;

@@ -30,5 +30,13 @@ Persevere.ServerMixin = {
 		.set('isAsynchronous', NO)
 		.header('Accept', 'application/json')
 		.send();
-  }	
+  },
+
+  _deleteResponseOk: function(response) {
+	// the sproutcore gem proxying code doesn\'t handle delete correctly
+	// if this is used with sproutcore master this function can probably
+	// be a simple SC.ok(response);
+	return response.status === 500 || response.status === 404 || response.status === 200;
+  }
+
 };

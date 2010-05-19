@@ -88,6 +88,12 @@ test("Verify update", function() {
 });
 
 test("Verify remove", function() {
+  var response;
+
+  // double check that the object is there on the server
+  response = ServerTest._get('TestObject', '1');
+  equals(response.status, 200, "object exists on the server");
+	
   var sf=store.find(Sample.File, "1");
   sf.destroy();
 
@@ -100,5 +106,10 @@ test("Verify remove", function() {
 
   // find still returns a valid object but its status is DESTROYED_CLEAN
   // I can't find a way to make it return null
-  ok(sf1.isDestroyed(), 'Record successfully destroyed');
+  ok(sf1.isDestroyed(), 'Record successfully destroyed: ' + sf1);
+
+  // check the actual server to see if the record is gone
+  response = ServerTest._get('TestObject', '1');
+  equals(response.status, 404, "Actually object should be gone from the server");
+
 });

@@ -86,3 +86,19 @@ test("Verify update", function() {
   equals(sf1.get('name'), 'UpdatedTestObject1', 'updated record has correct name');
 
 });
+
+test("Verify remove", function() {
+  var sf=store.find(Sample.File, "1");
+  sf.destroy();
+
+  // need to end the run loop inorder for the auto commit to fire
+  // alternatively we could call store.commitRecords directly
+  SC.RunLoop.end();
+
+  SC.RunLoop.begin();
+  var sf1 = store.find(Sample.File, 1);
+
+  // find still returns a valid object but its status is DESTROYED_CLEAN
+  // I can't find a way to make it return null
+  ok(sf1.isDestroyed(), 'Record successfully destroyed');
+});

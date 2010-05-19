@@ -38,9 +38,16 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 	      .send(data);
   },
 
+  _delete: function(klass, id) {
+	return SC.Request.deleteUrl(this.basePath + "/" + klass + "/" + id).json()
+		.set('isAsynchronous', NO)
+		.header('Accept', 'application/json')
+		.send();
+  },
+
   // ..........................................................
   // QUERY SUPPORT
-  // 
+  //
 
   fetch: function(store, query) {
 
@@ -69,8 +76,8 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 
   // ..........................................................
   // RECORD SUPPORT
-  // 
-  
+  //
+
   retrieveRecord: function(store, storeKey) {
     var recordType = SC.Store.recordTypeFor(storeKey),
         id         = store.idFor(storeKey),
@@ -84,12 +91,12 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 	// FIXME this runs synchronized which makes testing easier but not good for production
 	var response = this._get('TestObject', id);
 	var result = response.get('body');
- 
+
     store.dataSourceDidComplete(storeKey, result, id);
 
     return YES ; // return YES if you handled the storeKey
   },
-  
+
   createRecord: function(store, storeKey) {
     var recordType = SC.Store.recordTypeFor(storeKey);
 
@@ -113,7 +120,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
 
     return NO ; // return YES if you handled the storeKey
   },
-  
+
   updateRecord: function(store, storeKey) {
 	var hash = store.readDataHash(storeKey);
 	var response = this._put('TestObject', store.idFor(storeKey), hash);
@@ -130,13 +137,25 @@ Persevere.SchemaLessSource = SC.DataSource.extend(
     // store.dataSourceDidError(storeKey);
 	return NO;
   },
-  
+
   destroyRecord: function(store, storeKey) {
-    
-    // TODO: Add handlers to destroy records on the data source.
-    // call store.dataSourceDidDestroy(storeKey) when done
-    
+	var response = this._delete('TestObject', store.idFor(storeKey));
+
+	console.log('destoryRecord sent delete');
+
+    if(this._deleteResponseOk(response)){
+      store.dataSourceDidDestroy(storeKey);
+	  return YES;
+    }
+
     return NO ; // return YES if you handled the storeKey
+  },
+
+  _deleteResponseOk: function(response) {
+	// the sproutcore gem proxying code doesn\'t handle delete correctly
+	// if this is used with sproutcore master this function can probably
+	// be a simple SC.ok(response);
+	return response.status === 500 || response.status === 404;
   }
-  
+
 }) ;

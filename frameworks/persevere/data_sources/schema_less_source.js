@@ -20,6 +20,10 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   //
 
   fetch: function(store, query) {
+    // Do some sanity checking first to make sure everything is in order.
+    if (!query || !SC.instanceOf(query, SC.Query)) {
+      throw 'Error retrieving records: Invalid query.';
+    }
 
     // Get the record type
     var recordType = query.get('recordType');

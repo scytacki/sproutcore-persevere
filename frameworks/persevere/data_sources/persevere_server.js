@@ -26,17 +26,23 @@ Persevere.ServerMixin = {
   },
 
   _delete: function(klass, id) {
-	return SC.Request.deleteUrl(this.basePath + "/" + klass + "/" + id).json()
+	try {
+ 	  return SC.Request.deleteUrl(this.basePath + "/" + klass + "/" + id).json()
 		.set('isAsynchronous', NO)
 		.header('Accept', 'application/json')
 		.send();
+	} catch (e) {
+		// chrome throws an XMLHttpRequestException with a 101 code when a response is a 500
+		return e;
+	}
   },
 
   _deleteResponseOk: function(response) {
 	// the sproutcore gem proxying code doesn\'t handle delete correctly
 	// if this is used with sproutcore master this function can probably
 	// be a simple SC.ok(response);
-	return response.status === 500 || response.status === 404 || response.status === 200;
+	return (response.status && (response.status === 500 || response.status === 404 || response.status === 200)) ||
+	   (response.name && (response.name == 'NETWORK_ERR'));
   }
 
 };

@@ -36,6 +36,19 @@ test("Verify find() correctly loads File fixture data", function() {
   equals(files.get('length'), 2, 'returns 2 records');
 });
 
+test("find() throws error if an invalid query is passed", function() {
+  var exception = null;
+  try {
+	// pass in an invalid query object
+	// note that refreshQuery is never supposed to be called directly so 
+	// this probably will never happen
+    store.refreshQuery(SC.Object.create());
+  } catch (exp) {
+	exception = exp;	
+  }
+  ok(exception != null, 'Exception should have been thrown with invalid query: ' + exception);
+});
+
 test("Verify find() correctly loads Directory fixture data", function() {
   var dirs = store.find(Sample.DIRS_QUERY);
   equals(dirs.get('length'), 3, 'returns 3 records');
@@ -109,7 +122,8 @@ test("Verify remove", function() {
   ok(sf1.isDestroyed(), 'Record successfully destroyed: ' + sf1);
 
   // check the actual server to see if the record is gone
+  response = null;
   response = ServerTest._get('TestObject', '1');
-  equals(response.status, 404, "Actually object should be gone from the server");
+  equals(response.status, 404, "Object should be gone from the server");
 
 });

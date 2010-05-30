@@ -29,13 +29,6 @@ module("Persevere.SchemaLessDataSource", {
 	}
 });
 
-// Following the order of the sproutcore todo's tutorial
-// we verify the fetch method first
-test("Verify find() correctly loads File fixture data", function() {
-  var files = store.find(Sample.FILES_QUERY);
-  equals(files.get('length'), 2, 'returns 2 records');
-});
-
 test("find() throws error if an invalid query is passed", function() {
   var exception = null;
   try {
@@ -46,10 +39,38 @@ test("find() throws error if an invalid query is passed", function() {
   } catch (exp) {
 	exception = exp;	
   }
-  ok(exception != null, 'Exception should have been thrown with invalid query: ' + exception);
+  ok(exception !== null, 'Exception should have been thrown with invalid query: ' + exception);
 });
 
-test("Verify find() correctly loads Directory fixture data", function() {
+// Following the order of the sproutcore todo's tutorial
+// we verify the fetch method first
+test("Verify find() correctly loads File records", function() {
+  var files = store.find(Sample.FILES_QUERY);
+
+  // force fetch to be async
+  statusEquals(files, SC.Record.BUSY_LOADING, "files array is being loaded");
+
+  // need to check the status of the files array if this is done async then
+  // it should be set to K.BUSY_LOADING or K.BUSY_REFRESH
+  files.addObserver('status', function(){
+	if(files.get('status') === SC.Record.READY_CLEAN){
+	  equals(files.get('length'), 2, 'returns 2 records');
+	  start();
+	}
+	
+  });
+	
+  // setup timeout in case of failure also...
+  setTimeout(function() { 
+    ok(false, "request did not return within 0.5 sec!");
+	start(); // execute remaining tests
+  }, 500);
+	
+  stop();
+
+});
+
+test("Verify find() correctly loads Directory records", function() {
   var dirs = store.find(Sample.DIRS_QUERY);
   equals(dirs.get('length'), 3, 'returns 3 records');
 });

@@ -36,17 +36,31 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 	// convert the record type to a string
 	var recordTypeStr = SC._object_className(recordType);
 
-	// FIXME this needs to check the query
+	// This doesn't pass the conditions of the query to the server so probably more
+	// records than neccessary will be returned. However SproutCore applies these conditions
+	// when the RecordArray linked to this query is accessed, so handling the conditions here
+	// is an optimization.
 
-	// FIXME this runs synchronized which makes testing easier but not good for production
-	var response = this._get('TestObject', '[?sc_type="' + recordTypeStr + '"]');
-    var result = response.get('body');
+    this._getAsync('TestObject', '[?sc_type="' + recordTypeStr + '"]')
+       .notify(this, 'didFetch', recordType, store, query)
+       .send();
 
-	// This counts on the records primaryKey property set to 'id' instead of the default 'guid'
-	store.loadRecords(recordType, result);
-	store.dataSourceDidFetchQuery(query);
-	return YES;
   },
+
+  didFetch: function(response, recordType, store, query){
+    if (SC.ok(response)) {
+	    var result = response.get('body');
+
+		// This counts on the records primaryKey property set to 'id' instead of the default 'guid'
+		store.loadRecords(recordType, result);
+		store.dataSourceDidFetchQuery(query);
+		return YES;
+    } else {
+	  // Need a test for this
+	  store.dataSourceDidErrorQuery(query, response);
+	}
+  },
+
 
   // ..........................................................
   // RECORD SUPPORT

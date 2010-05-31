@@ -10,6 +10,13 @@ Persevere.ServerMixin = {
 			.send();
   },
 
+  _getAsync: function(klass, query, nFunc, target) {
+        if(!query) var query = '';
+
+		return SC.Request.getUrl(this.basePath + "/" + klass + "/" + query).json()
+		    .header('Accept', 'application/json');
+  },
+
   _post: function(klass, data) {
 		return SC.Request.postUrl(this.basePath + "/" + klass + "/").json()
 			.set('isAsynchronous', NO)

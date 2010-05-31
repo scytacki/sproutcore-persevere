@@ -50,21 +50,22 @@ test("Verify find() correctly loads File records", function() {
   // force fetch to be async
   statusEquals(files, SC.Record.BUSY_LOADING, "files array is being loaded");
 
+  // setup timeout in case of failure also...
+  var timeoutId = setTimeout(function() { 
+    ok(false, "request did not return within 0.5 sec!");
+	start(); // execute remaining tests
+  }, 500);
+	
   // need to check the status of the files array if this is done async then
   // it should be set to K.BUSY_LOADING or K.BUSY_REFRESH
   files.addObserver('status', function(){
 	if(files.get('status') === SC.Record.READY_CLEAN){
+	  clearTimeout(timeoutId);
 	  equals(files.get('length'), 2, 'returns 2 records');
 	  start();
 	}
 	
   });
-	
-  // setup timeout in case of failure also...
-  setTimeout(function() { 
-    ok(false, "request did not return within 0.5 sec!");
-	start(); // execute remaining tests
-  }, 500);
 	
   stop();
 
@@ -72,8 +73,62 @@ test("Verify find() correctly loads File records", function() {
 
 test("Verify find() correctly loads Directory records", function() {
   var dirs = store.find(Sample.DIRS_QUERY);
-  equals(dirs.get('length'), 3, 'returns 3 records');
+
+  // force fetch to be async
+  statusEquals(dirs, SC.Record.BUSY_LOADING, "dirs array is being loaded");
+
+  // setup timeout in case of failure also...
+  var timeoutId = setTimeout(function() { 
+    ok(false, "request did not return within 0.5 sec!");
+	start(); // execute remaining tests
+  }, 500);
+	
+  // need to check the status of the files array if this is done async then
+  // it should be set to K.BUSY_LOADING or K.BUSY_REFRESH
+  dirs.addObserver('status', function(){
+	if(dirs.get('status') === SC.Record.READY_CLEAN){
+	  clearTimeout(timeoutId);
+	  equals(dirs.get('length'), 3, 'returns 3 records');
+	  start();
+	}
+  });
+	
+  stop();
 });
+
+test("Verify fetch handles a record object that causes an invalid query", function() {
+
+  Sample.Fake = SC.Record.extend({ test:'hello'});
+  
+  // Need to mess up the query that is sent to persevere so it will return a error
+  // Currently it constructs the query string using classname
+  Sample.Fake._object_className = 'invalid"&name';
+
+  var fakes = store.find(SC.Query.local(Sample.Fake, {}));
+
+  // force fetch to be async
+  statusEquals(fakes, SC.Record.BUSY_LOADING, "fakes array is being loaded");
+
+  // setup timeout in case of failure also...
+  var timeoutId = setTimeout(function() { 
+    ok(false, "request did not have a error state in 0.5 sec, instead it had: " + 
+             SC.Record.statusString(fakes.get('status')));
+	start(); // execute remaining tests
+  }, 500);
+
+  // need to check the status of the files array if this is done async then
+  // it should be set to K.BUSY_LOADING or K.BUSY_REFRESH
+  fakes.addObserver('status', function(){
+	if(fakes.get('status') === SC.Record.ERROR){
+	  clearTimeout(timeoutId);
+      ok(true, 'record array has an error status after the invalid request');
+	  start();
+	}
+  });
+	
+  stop();
+});
+
 
 test("Verify find() can get objects by type and id", function() {
   var sf=store.find(Sample.File, "1");

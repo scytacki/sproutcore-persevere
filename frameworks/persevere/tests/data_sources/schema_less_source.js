@@ -25,6 +25,8 @@ module("Persevere.SchemaLessDataSource", {
 	
 	teardown: function() {
 	    ServerTest.deleteTestObjectClass();
+	    // Make sure the store is totally gone
+	    store = null;
 		SC.RunLoop.end();
 	}
 });
@@ -100,12 +102,26 @@ test("Verify fetch handles a record object that causes an invalid query", functi
 });
 
 
-test("Verify find() can get objects by type and id", function() {
+test("Verify find() can get File record by type and id", function() {
+  stop(200);
+
   var sf=store.find(Sample.File, "1");
-  equals(sf.get('name'), 'TestObject1', 'returned record has correct name');
+
+  statusNotify(sf, SC.Record.READY_CLEAN, function(){
+	  equals(sf.get('name'), 'TestObject1', 'returned record has correct name');
+	  start();	
+  });
+});
+
+test("Verify find() can get Directory record by type and id", function() {
+  stop(200);
 
   var sd = store.find(Sample.Directory, "3");
-  equals(sd.get('name'), 'TestObject3', 'returned record has have correct name');
+
+  statusNotify(sd, SC.Record.READY_CLEAN, function(){
+	equals(sd.get('name'), 'TestObject3', 'returned record has have correct name');
+    start();	
+  });
 });
 
 test("Verify create", function() {
@@ -130,46 +146,64 @@ test("Verify create", function() {
 });
 
 test("Verify update", function() {
+  stop(200);
+
   var sf=store.find(Sample.File, "1");
-  sf.set('name', 'UpdatedTestObject1');
 
-  // need to end the run loop inorder for the auto commit to fire
-  // alternatively we could call store.commitRecords directly
-  SC.RunLoop.end();
+  statusNotify(sf, SC.Record.READY_CLEAN, function(){
+	console.log('updating record with store: ' + store);
+	sf.set('name', 'UpdatedTestObject1');
 
-  SC.RunLoop.begin();
-  var sf1 = store.find(Sample.File, sf.get('id'));
+	// need to end the run loop inorder for the auto commit to fire
+	// alternatively we could call store.commitRecords directly
+	SC.RunLoop.end();
+	SC.RunLoop.begin();
 
-  // This probably isn't the best test, to be sure it should look directly
-  // at the server
-  equals(sf1.get('name'), 'UpdatedTestObject1', 'updated record has correct name');
+	// check server directly
+	var response = ServerTest._get('TestObject', sf.get('id'));
+	var objHash = response.get('body');
 
+	// This probably isn't the best test, to be sure it should look directly
+	// at the server
+	equals(objHash.name, 'UpdatedTestObject1', 'updated record has correct name');	
+	start();
+  });
 });
 
 test("Verify remove", function() {
+  // Replace start to figure out what is going on 
+  expect(4);
   var response;
 
   // double check that the object is there on the server
   response = ServerTest._get('TestObject', '1');
   equals(response.status, 200, "object exists on the server");
+
+  stop(400);
 	
   var sf=store.find(Sample.File, "1");
-  sf.destroy();
 
-  // need to end the run loop inorder for the auto commit to fire
-  // alternatively we could call store.commitRecords directly
-  SC.RunLoop.end();
+  statusNotify(sf, SC.Record.READY_CLEAN, function(){
+	  console.log('destroying record with store: ' + store);
+	  sf.destroy();
 
-  SC.RunLoop.begin();
-  var sf1 = store.find(Sample.File, 1);
+	  // need to end the run loop inorder for the auto commit to fire
+	  // alternatively we could call store.commitRecords directly
+	  SC.RunLoop.end();
+	  SC.RunLoop.begin();
+	
+	  var sf1 = store.find(Sample.File, 1);
 
-  // find still returns a valid object but its status is DESTROYED_CLEAN
-  // I can't find a way to make it return null
-  ok(sf1.isDestroyed(), 'Record successfully destroyed: ' + sf1);
+	  // find still returns a valid object but its status is DESTROYED_CLEAN
+	  // I can't find a way to make it return null
+	  ok(sf1.isDestroyed(), 'Record successfully destroyed: ' + sf1);
 
-  // check the actual server to see if the record is gone
-  response = null;
-  response = ServerTest._get('TestObject', '1');
-  equals(response.status, 404, "Object should be gone from the server");
+	  // check the actual server to see if the record is gone
+	  response = null;
+	  response = ServerTest._get('TestObject', '1');
+	  equals(response.status, 404, "Object should be gone from the server");
+	  start();	
+  });
 
+  console.log('this.isRunning: ' + this.isRunning);
 });

@@ -56,17 +56,21 @@ statusNotify = function(obj, status, func){
   obj.beginPropertyChanges();
 
   if(obj.get('status') === status){
+	console.log('statusNotify firing synchronously');
     func.call();
     
     // resume property change notifications
     obj.endPropertyChanges();	
     return;
   };
-  obj.addObserver('status', function(){
+  var checkingFunc = function(){
 	if(obj.get('status') === status){
+	  // remove the observer incase the passed func causes it to fire again
+	  obj.removeObserver('status', checkingFunc)
 	  func.call();
 	}
-  });
+  };
+  obj.addObserver('status', checkingFunc);
 
   // resume property change notifications
   // this should make the method more thread safe

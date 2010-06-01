@@ -45,6 +45,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
        .notify(this, 'didFetch', recordType, store, query)
        .send();
 
+    return YES;
   },
 
   didFetch: function(response, recordType, store, query){
@@ -67,22 +68,22 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   //
 
   retrieveRecord: function(store, storeKey) {
-    var recordType = SC.Store.recordTypeFor(storeKey),
-        id         = store.idFor(storeKey),
-        hash       = {name: "First record name"};
+    var id         = store.idFor(storeKey);
 
-	// convert the record type to a string
-	var recordTypeStr = SC._object_className(recordType);
+    // Currently all of the ids are unique for the entire data source
+	var response = this._getAsync('TestObject', id)
+	  .notify(this, 'didRetrieveRecord', store, id, storeKey)
+	  .send();
 
-	// FIXME this needs to check the query
+    return YES ; 
+  },
 
-	// FIXME this runs synchronized which makes testing easier but not good for production
-	var response = this._get('TestObject', id);
+  didRetrieveRecord: function(response, store, id, storeKey){
 	var result = response.get('body');
 
     store.dataSourceDidComplete(storeKey, result, id);
 
-    return YES ; // return YES if you handled the storeKey
+    return YES ; // return YES if you handled the storeKey	
   },
 
   createRecord: function(store, storeKey) {

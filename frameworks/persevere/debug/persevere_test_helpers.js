@@ -47,3 +47,28 @@ SC.Record.mixin({
 statusEquals = function(obj, status, message){
   equals(SC.Record.statusString(obj.get('status')), SC.Record.statusString(status), message);	
 };
+
+// Helper function to notify for a particular status
+// it will call func immediately if the status matches
+statusNotify = function(obj, status, func){
+  // suspend property change notifications so we can atomically check if the status is changed
+  // this should make the method more thread safe
+  obj.beginPropertyChanges();
+
+  if(obj.get('status') === status){
+    func.call();
+    
+    // resume property change notifications
+    obj.endPropertyChanges();	
+    return;
+  };
+  obj.addObserver('status', function(){
+	if(obj.get('status') === status){
+	  func.call();
+	}
+  });
+
+  // resume property change notifications
+  // this should make the method more thread safe
+  obj.endPropertyChanges();	
+};

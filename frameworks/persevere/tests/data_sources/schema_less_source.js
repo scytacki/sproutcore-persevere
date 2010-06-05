@@ -124,30 +124,49 @@ test("Verify find() can get Directory record by type and id", function() {
   });
 });
 
+test("Verify find() returns a server error with an invalid id", function() {
+  stop(200);
+
+  var badDir = store.find(Sample.Directory, "[");
+
+  statusNotify(badDir, SC.Record.ERROR, function(){
+	ok(true, 'Invalid id correctly caused ERROR status');
+    start();	
+  });
+});
+
 test("Verify create", function() {
   var sf = store.createRecord(Sample.File, {name: 'CreatedObject1'});
 
   // need to end the run loop inorder for the auto commit to fire
   // alternatively we could call store.commitRecords directly
   SC.RunLoop.end();
-
-  // We should add code here to verify that the createRecord was called on the
-  // source
-  // or we should query persevere directly to see if it was created
-
   SC.RunLoop.begin();
-  console.log("new id: " + sf.get('id'));
-  console.log("new obj name: " + sf.get('name'));
-  var sf1 = store.find(Sample.File, sf.get('id'));
 
-  // This probably isn't the best test, to be sure it should look directly
-  // at the server
-  equals(sf1, sf, 'created record equals found record');
+  // force create to be async
+  statusEquals(sf, SC.Record.BUSY_CREATING, "file record is being created");
+
+  // We should query persevere directly to see if it was created
+  stop(200);
+
+  statusNotify(sf, SC.Record.READY_CLEAN, function(){
+	  console.log("new id: " + sf.get('id'));
+	  console.log("new obj name: " + sf.get('name'));
+	  var sf1 = store.find(Sample.File, sf.get('id'));
+
+	  // This probably isn't the best test, to be sure it should look directly
+	  // at the server
+	  equals(sf1, sf, 'created record equals found record');
+	  start();
+  });
+
 });
 
+// Note this test requires retrieveRecord to be implemented correctly inorder for it to work
 test("Verify update", function() {
   stop(200);
 
+  // It would be nice to find a way around this call, so this test would be independent
   var sf=store.find(Sample.File, "1");
 
   statusNotify(sf, SC.Record.READY_CLEAN, function(){
@@ -170,6 +189,7 @@ test("Verify update", function() {
   });
 });
 
+// Note this test requires retrieveRecord to be implemented correctly inorder for it to work
 test("Verify remove", function() {
   // Replace start to figure out what is going on 
   expect(4);
@@ -180,7 +200,7 @@ test("Verify remove", function() {
   equals(response.status, 200, "object exists on the server");
 
   stop(400);
-	
+
   var sf=store.find(Sample.File, "1");
 
   statusNotify(sf, SC.Record.READY_CLEAN, function(){

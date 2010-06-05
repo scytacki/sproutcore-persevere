@@ -79,11 +79,14 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   },
 
   didRetrieveRecord: function(response, store, id, storeKey){
+	if (!SC.ok(response)) {
+		store.dataSourceDidError(storeKey);
+		return;
+	}
+	
 	var result = response.get('body');
 
     store.dataSourceDidComplete(storeKey, result, id);
-
-    return YES ; // return YES if you handled the storeKey	
   },
 
   createRecord: function(store, storeKey) {
@@ -97,17 +100,24 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     hash.sc_type = recordTypeStr;
 
     // send the post with the hash
-    var response = this._post('TestObject', hash);
+    var response = this._postAsync('TestObject', hash)
+      .notify(this, 'didCreateRecord', store, storeKey)
+      .send(hash);
+
+    return YES;
+  },
+
+  didCreateRecord: function(response, store, storeKey) {
     console.log("Post complete: " + response);
 
-    if (SC.ok(response)) {
-		var url = response.header('Location');
-	    console.log("Location after createRecord: " + url);
-		store.dataSourceDidComplete(storeKey, null, url); // update id
-		return YES;
+    if (!SC.ok(response)) {
+	  return NO;
 	}
-
-    return NO ; // return YES if you handled the storeKey
+	
+	var url = response.header('Location');
+	console.log("Location after createRecord: " + url);
+	store.dataSourceDidComplete(storeKey, null, url); // update id
+	return YES;
   },
 
   updateRecord: function(store, storeKey) {

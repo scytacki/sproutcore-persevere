@@ -24,6 +24,11 @@ Persevere.ServerMixin = {
 			.send(data);
   },
 
+  _postAsync: function(klass, data) {
+		return SC.Request.postUrl(this.basePath + "/" + klass + "/").json()
+			.header('Accept', 'application/json');
+  },
+
 
   _put: function(klass, id, data) {
 	return SC.Request.putUrl(this.basePath + "/" + klass + "/" + id).json()

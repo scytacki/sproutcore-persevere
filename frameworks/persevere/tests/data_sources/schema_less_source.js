@@ -159,7 +159,6 @@ test("Verify create", function() {
 	  equals(sf1, sf, 'created record equals found record');
 	  start();
   });
-
 });
 
 // Note this test requires retrieveRecord to be implemented correctly inorder for it to work
@@ -178,14 +177,19 @@ test("Verify update", function() {
 	SC.RunLoop.end();
 	SC.RunLoop.begin();
 
-	// check server directly
-	var response = ServerTest._get('TestObject', sf.get('id'));
-	var objHash = response.get('body');
+    // force update to be async
+    statusEquals(sf, SC.Record.BUSY_COMMITTING, "file record is being updated");
 
-	// This probably isn't the best test, to be sure it should look directly
-	// at the server
-	equals(objHash.name, 'UpdatedTestObject1', 'updated record has correct name');	
-	start();
+	// check server directly
+	statusNotify(sf, SC.Record.READY_CLEAN, function(){
+	  var response = ServerTest._get('TestObject', sf.get('id'));
+	  var objHash = response.get('body');
+
+	  // This probably isn't the best test, to be sure it should look directly
+	  // at the server
+	  equals(objHash.name, 'UpdatedTestObject1', 'updated record has correct name');	
+	  start();		
+	});
   });
 });
 

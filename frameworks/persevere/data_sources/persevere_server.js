@@ -24,17 +24,21 @@ Persevere.ServerMixin = {
 			.send(data);
   },
 
-  _postAsync: function(klass, data) {
+  _postAsync: function(klass) {
 		return SC.Request.postUrl(this.basePath + "/" + klass + "/").json()
 			.header('Accept', 'application/json');
   },
-
 
   _put: function(klass, id, data) {
 	return SC.Request.putUrl(this.basePath + "/" + klass + "/" + id).json()
 	      .set('isAsynchronous', NO)
 		  .header('Accept', 'application/json')
 	      .send(data);
+  },
+
+  _putAsync: function(klass, id) {
+	return SC.Request.putUrl(this.basePath + "/" + klass + "/" + id).json()
+		  .header('Accept', 'application/json');
   },
 
   _delete: function(klass, id) {

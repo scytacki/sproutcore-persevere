@@ -100,7 +100,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     hash.sc_type = recordTypeStr;
 
     // send the post with the hash
-    var response = this._postAsync('TestObject', hash)
+    var response = this._postAsync('TestObject')
       .notify(this, 'didCreateRecord', store, storeKey)
       .send(hash);
 
@@ -111,7 +111,8 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     console.log("Post complete: " + response);
 
     if (!SC.ok(response)) {
-	  return NO;
+      store.dataSourceDidError(storeKey);
+      return;
 	}
 	
 	var url = response.header('Location');
@@ -122,19 +123,24 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 
   updateRecord: function(store, storeKey) {
 	var hash = store.readDataHash(storeKey);
-	var response = this._put('TestObject', store.idFor(storeKey), hash);
+	var response = this._putAsync('TestObject', store.idFor(storeKey))
+	   .notify(this, 'didUpdateRecord', store, storeKey)
+	   .send(hash);
 
     console.log('update record did a put');
 
-	if (SC.ok(response)) {
-	  var data = response.get('body');
-      store.dataSourceDidComplete(storeKey, data);
-      return YES;
+	return YES;
+  },
+
+  didUpdateRecord: function(response, store, storeKey) {
+	if (!SC.ok(response)) {
+		store.dataSourceDidError(storeKey);
+		return;
     }
 
-    // if we are asynchronous then this should be called in the call back when it fails
-    // store.dataSourceDidError(storeKey);
-	return NO;
+	var data = response.get('body');
+    store.dataSourceDidComplete(storeKey, data);
+    return YES;	
   },
 
   destroyRecord: function(store, storeKey) {

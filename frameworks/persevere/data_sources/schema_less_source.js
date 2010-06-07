@@ -59,6 +59,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     } else {
 	  // Need a test for this
 	  store.dataSourceDidErrorQuery(query, response);
+	  return YES;
 	}
   },
 
@@ -81,12 +82,13 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   didRetrieveRecord: function(response, store, id, storeKey){
 	if (!SC.ok(response)) {
 		store.dataSourceDidError(storeKey);
-		return;
+		return YES;
 	}
 	
 	var result = response.get('body');
 
     store.dataSourceDidComplete(storeKey, result, id);
+    return YES;
   },
 
   createRecord: function(store, storeKey) {
@@ -112,7 +114,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 
     if (!SC.ok(response)) {
       store.dataSourceDidError(storeKey);
-      return;
+      return YES;
 	}
 	
 	var url = response.header('Location');
@@ -123,7 +125,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 
   updateRecord: function(store, storeKey) {
 	var hash = store.readDataHash(storeKey);
-	var response = this._putAsync('TestObject', store.idFor(storeKey))
+	this._putAsync('TestObject', store.idFor(storeKey))
 	   .notify(this, 'didUpdateRecord', store, storeKey)
 	   .send(hash);
 
@@ -135,7 +137,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   didUpdateRecord: function(response, store, storeKey) {
 	if (!SC.ok(response)) {
 		store.dataSourceDidError(storeKey);
-		return;
+		return YES;
     }
 
 	var data = response.get('body');
@@ -144,16 +146,25 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
   },
 
   destroyRecord: function(store, storeKey) {
-	var response = this._delete('TestObject', store.idFor(storeKey));
+		
+	this._deleteAsync('TestObject', store.idFor(storeKey))
+	  .notify(this, 'didDestroyRecord', store, storeKey)
+	  .send();
+	
+    return YES;
+  },
 
-	console.log('destoryRecord sent delete response.status: ' + response.status);
+  didDestroyRecord: function(response, store, storeKey) {
+	console.log('destroyRecord(me) sent delete response.status: ' + response);
 
-    if(this._deleteResponseOk(response)){
-      store.dataSourceDidDestroy(storeKey);
+    if(!this._deleteResponseOk(response)){
+	  store.dataSourceDidError(storeKey);
+	  // Not sure if it make sense to return yes here, but if not then 
+	  // this same method gets called again
 	  return YES;
     }
 
-    return NO ; // return YES if you handled the storeKey
-  },
-
+    store.dataSourceDidDestroy(storeKey);
+    return YES;
+  }
 }) ;

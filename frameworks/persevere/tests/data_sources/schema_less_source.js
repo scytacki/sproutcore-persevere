@@ -147,7 +147,7 @@ test("Verify create", function() {
   statusEquals(sf, SC.Record.BUSY_CREATING, "file record is being created");
 
   // We should query persevere directly to see if it was created
-  stop(200);
+  stop(400);
 
   statusNotify(sf, SC.Record.READY_CLEAN, function(){
 	  console.log("new id: " + sf.get('id'));
@@ -163,7 +163,7 @@ test("Verify create", function() {
 
 // Note this test requires retrieveRecord to be implemented correctly inorder for it to work
 test("Verify update", function() {
-  stop(200);
+  stop(400);
 
   // It would be nice to find a way around this call, so this test would be independent
   var sf=store.find(Sample.File, "1");
@@ -195,17 +195,21 @@ test("Verify update", function() {
 
 // Note this test requires retrieveRecord to be implemented correctly inorder for it to work
 test("Verify remove", function() {
-  // Replace start to figure out what is going on 
-  expect(4);
+  // expect 5 assertions
+  expect(5);
   var response;
 
   // double check that the object is there on the server
   response = ServerTest._get('TestObject', '1');
   equals(response.status, 200, "object exists on the server");
 
-  stop(400);
+  var sf;
 
-  var sf=store.find(Sample.File, "1");
+  stop(500, function(){
+    this.fail("Test timed out and record has status: " + SC.Record.statusString(sf.get('status')));
+  });
+
+  sf=store.find(Sample.File, "1");
 
   statusNotify(sf, SC.Record.READY_CLEAN, function(){
 	  console.log('destroying record with store: ' + store);
@@ -215,18 +219,23 @@ test("Verify remove", function() {
 	  // alternatively we could call store.commitRecords directly
 	  SC.RunLoop.end();
 	  SC.RunLoop.begin();
-	
-	  var sf1 = store.find(Sample.File, 1);
 
-	  // find still returns a valid object but its status is DESTROYED_CLEAN
-	  // I can't find a way to make it return null
-	  ok(sf1.isDestroyed(), 'Record successfully destroyed: ' + sf1);
+      // force update to be async
+      statusEquals(sf, SC.Record.BUSY_DESTROYING, "file record is being destroyed");
 
-	  // check the actual server to see if the record is gone
-	  response = null;
-	  response = ServerTest._get('TestObject', '1');
-	  equals(response.status, 404, "Object should be gone from the server");
-	  start();	
+      statusNotify(sf, SC.Record.DESTROYED_CLEAN, function(){
+		  var sf1 = store.find(Sample.File, 1);
+
+		  // find still returns a valid object but its status is DESTROYED_CLEAN
+		  // I can't find a way to make it return null
+		  ok(sf1.isDestroyed(), 'Record successfully destroyed: ' + sf1);
+
+		  // check the actual server to see if the record is gone
+		  response = null;
+		  response = ServerTest._get('TestObject', '1');
+		  equals(response.status, 404, "Object should be gone from the server");
+		  start();		
+      });
   });
 
   console.log('this.isRunning: ' + this.isRunning);

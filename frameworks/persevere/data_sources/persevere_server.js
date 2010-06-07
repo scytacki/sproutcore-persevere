@@ -53,12 +53,21 @@ Persevere.ServerMixin = {
 	}
   },
 
+  _deleteAsync: function(klass, id) {
+	return SC.Request.deleteUrl(this.basePath + "/" + klass + "/" + id).json()
+	  .header('Accept', 'application/json');
+  },
+
   _deleteResponseOk: function(response) {
 	// the sproutcore gem proxying code doesn\'t handle delete correctly
 	// if this is used with sproutcore master this function can probably
 	// be a simple SC.ok(response);
 	return (response.status && (response.status === 500 || response.status === 404 || response.status === 200)) ||
-	   (response.name && (response.name == 'NETWORK_ERR'));
+	   (response.name && (response.name == 'NETWORK_ERR')) ||
+	   // With an async request
+	   // response.errorObject.message == "HTTP Request failed"	
+	   (response.errorObject && (response.errorObject.message == "HTTP Request failed"));
+	
   }
 
 };

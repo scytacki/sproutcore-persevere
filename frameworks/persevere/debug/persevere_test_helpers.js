@@ -55,7 +55,7 @@ statusNotify = function(obj, status, func){
   // this should make the method more thread safe
   obj.beginPropertyChanges();
 
-  if(obj.get('status') === status){
+  if(obj.get('status') & status){
 	console.log('statusNotify firing synchronously');
     func.call();
     
@@ -64,7 +64,7 @@ statusNotify = function(obj, status, func){
     return;
   };
   var checkingFunc = function(){
-	if(obj.get('status') === status){
+	if(obj.get('status') & status){
 	  // remove the observer incase the passed func causes it to fire again
 	  obj.removeObserver('status', checkingFunc)
 	  func.call();
@@ -76,3 +76,27 @@ statusNotify = function(obj, status, func){
   // this should make the method more thread safe
   obj.endPropertyChanges();	
 };
+
+// monkey patch stop so we can do 
+CoreTest.Plan.stop = function(timeout, func) {
+    this.isRunning = false ;
+    
+    if (this.timeout) clearTimeout(this.timeout);
+    if (timeout) {
+      var plan = this;
+      this.timeout = setTimeout(function() {
+	    if(func){
+		  func.call(plan);
+	      start();		 
+	    } else {
+		  plan.fail("Test timed out").start();
+	    }
+      }, timeout);
+    } else this.timeout = null ;
+    return this ;
+  };
+
+CoreTest.Plan.fn.stop =  function(timeout, func) {
+    return this.stop(timeout, func);
+  };
+

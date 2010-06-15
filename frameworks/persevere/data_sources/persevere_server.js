@@ -69,5 +69,25 @@ Persevere.ServerMixin = {
 	   (response.errorObject && (response.errorObject.message == "HTTP Request failed"));
 	
   }
+  
 
 };
+
+Persevere.Server = SC.Object.create(Persevere.ServerMixin, {
+  createClass: function (className) {
+    return this._post('Class', {'id':className, 'extends': {'$ref':'../Class/Object'}});
+  },
+  
+  importRecords: function(srcStore, destStore) {
+    // Query to find all records in the store
+    var records = srcStore.find(SC.Record);
+    
+    // figure out the set properties of the record (can we do this???)
+    // create a record in the new store, copy each property
+    // if the property value is simple it can just be get and set
+    // if the property is a record it needs to be recursively copied
+    //   start by creating an empty one, and then adding it to a queue to be handled later
+    // one way to get the properties is to get the read only hash and look at its properties
+    // however we also need the types
+  }
+});

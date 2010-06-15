@@ -15,6 +15,8 @@ require('data_sources/persevere_server');
 Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 /** @scope Persevere.SchemaLessSource.prototype */ {
 
+  prsvClassName: 'SCRecord',
+
   // ..........................................................
   // QUERY SUPPORT
   //
@@ -33,15 +35,15 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
       throw 'Error retrieving records: Invalid record type.';
     }
 
-	// convert the record type to a string
-	var recordTypeStr = SC._object_className(recordType);
+    // convert the record type to a string
+    var recordTypeStr = SC._object_className(recordType);
 
-	// This doesn't pass the conditions of the query to the server so probably more
-	// records than neccessary will be returned. However SproutCore applies these conditions
-	// when the RecordArray linked to this query is accessed, so handling the conditions here
-	// is an optimization.
+    // This doesn't pass the conditions of the query to the server so probably more
+    // records than neccessary will be returned. However SproutCore applies these conditions
+    // when the RecordArray linked to this query is accessed, so handling the conditions here
+    // is an optimization.
 
-    this._getAsync('TestObject', '[?sc_type="' + recordTypeStr + '"]')
+    this._getAsync(this.get('prsvClassName'), '[?sc_type="' + recordTypeStr + '"]')
        .notify(this, 'didFetch', recordType, store, query)
        .send();
 
@@ -72,7 +74,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     var id         = store.idFor(storeKey);
 
     // Currently all of the ids are unique for the entire data source
-	var response = this._getAsync('TestObject', id)
+	var response = this._getAsync(this.get('prsvClassName'), id)
 	  .notify(this, 'didRetrieveRecord', store, id, storeKey)
 	  .send();
 
@@ -102,7 +104,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     hash.sc_type = recordTypeStr;
 
     // send the post with the hash
-    var response = this._postAsync('TestObject')
+    var response = this._postAsync(this.get('prsvClassName'))
       .notify(this, 'didCreateRecord', store, storeKey)
       .send(hash);
 
@@ -115,23 +117,27 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
     if (!SC.ok(response)) {
       store.dataSourceDidError(storeKey);
       return YES;
-	}
-	
-	var url = response.header('Location');
-	console.log("Location after createRecord: " + url);
-	store.dataSourceDidComplete(storeKey, null, url); // update id
-	return YES;
+    }
+
+    var url = response.header('Location');
+    console.log("Location after createRecord: " + url);
+
+    // use the id from the returned hash instead of the location header
+    // this id doesn't contain the full url so it will be the correct postfix when updates
+    // and deletes are sent.
+    store.dataSourceDidComplete(storeKey, null, response.get('body').id); 
+    return YES;
   },
 
   updateRecord: function(store, storeKey) {
-	var hash = store.readDataHash(storeKey);
-	this._putAsync('TestObject', store.idFor(storeKey))
-	   .notify(this, 'didUpdateRecord', store, storeKey)
-	   .send(hash);
+    var hash = store.readDataHash(storeKey);
+    this._putAsync(this.get('prsvClassName'), store.idFor(storeKey))
+       .notify(this, 'didUpdateRecord', store, storeKey)
+       .send(hash);
 
-    console.log('update record did a put');
+      console.log('update record did a put');
 
-	return YES;
+    return YES;
   },
 
   didUpdateRecord: function(response, store, storeKey) {
@@ -147,7 +153,7 @@ Persevere.SchemaLessSource = SC.DataSource.extend(Persevere.ServerMixin,
 
   destroyRecord: function(store, storeKey) {
 		
-	this._deleteAsync('TestObject', store.idFor(storeKey))
+	this._deleteAsync(this.get('prsvClassName'), store.idFor(storeKey))
 	  .notify(this, 'didDestroyRecord', store, storeKey)
 	  .send();
 	

@@ -11,7 +11,7 @@ Example.mainPage = SC.Page.design({
   // Add childViews to this pane for views to display immediately on page 
   // load.
   mainPane: SC.MainPane.design({
-    childViews: 'projectsView productsView'.w(),
+    childViews: 'projectsView projectProductsView productsView'.w(),
     
     projectsView: SC.View.design({
       layout: {left:0, width: 350},
@@ -39,6 +39,31 @@ Example.mainPage = SC.Page.design({
       })      
     }),
 
+    projectProductsView: SC.View.design({
+      layout: {left:355, width: 250},
+      childViews: 'labelView listView'.w(),
+      
+      labelView: SC.LabelView.design({
+        projectBinding: SC.Binding.single('Example.projectsController.selection'),
+        value: function(){
+          return this.getPath('project.name') + " Products";
+        }.property('project').cacheable(),
+        
+        layout: {top: 10, height: 30, right: 80},
+        textAlign: SC.ALIGN_CENTER,
+      }),
+      
+      listView: SC.ListView.design({
+        projectBinding: SC.Binding.single('Example.projectsController.selection'),
+        layout: {top: 40},
+        contentValueKey: 'name',
+        contentBinding: '*project.products'
+        // contentValueKey: 'name',
+        // contentBinding: 'Example.productsController.arrangedObjects',
+        // canEditContent: YES,
+        // selectionBinding: 'Example.productsController.selection'            
+      })    
+    }),
     
     productsView: SC.View.design({
       layout: {right:0, width: 350},
